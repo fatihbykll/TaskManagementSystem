@@ -1,0 +1,41 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+# NuGet
+*.nupkg
+packages/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Node (Frontend)
+node_modules/
+dist/
+
+# Environment / Secrets
+.env
+*.env
+appsettings.Development.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
