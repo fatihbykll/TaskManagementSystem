@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using TaskManagement.Application.Interfaces;
+using TaskManagement.Application.Mappings;
+using TaskManagement.Application.Services;
+using TaskManagement.Domain.Interfaces;
 using TaskManagement.Infrastructure.Data;
-
+using TaskManagement.Infrastructure.Repositories;
 var builder = WebApplication.CreateBuilder(args);
-
-// --- Database Provider Configuration ---
 var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "Postgres";
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     switch (databaseProvider)
@@ -13,40 +14,32 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         case "Oracle":
             options.UseOracle(
                 builder.Configuration.GetConnectionString("OracleConnection"),
-                oracleOptions => oracleOptions.MigrationsAssembly("TaskManagement.Infrastructure"));
+                o => o.MigrationsAssembly("TaskManagement.Infrastructure"));
             break;
         case "Postgres":
         default:
             options.UseNpgsql(
                 builder.Configuration.GetConnectionString("PostgresConnection"),
-                npgsqlOptions => npgsqlOptions.MigrationsAssembly("TaskManagement.Infrastructure"));
+                o => o.MigrationsAssembly("TaskManagement.Infrastructure"));
             break;
     }
 });
-
-// --- AutoMapper ---
-builder.Services.AddAutoMapper(typeof(TaskManagement.Application.Mappings.MappingProfile).Assembly);
-
-// --- Controllers ---
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 builder.Services.AddControllers();
-
-// --- Swagger ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
