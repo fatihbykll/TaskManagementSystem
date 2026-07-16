@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Mappings;
 using TaskManagement.Application.Services;
@@ -10,35 +11,28 @@ using TaskManagement.Domain.Interfaces;
 using TaskManagement.Infrastructure.Data;
 using TaskManagement.Infrastructure.Repositories;
 using TaskManagement.Infrastructure.Services;
-
+using TaskManagement.API.Middleware;
 var builder = WebApplication.CreateBuilder(args);
-
 // ─── Veritabanı: Dual-Provider (Postgres / Oracle) ────────────────────────────
 var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "Postgres";
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     switch (databaseProvider)
     {
         case "Oracle":
-            options.UseOracle(
-                builder.Configuration.GetConnectionString("OracleConnection"),
+            options.UseOracle(builder.Configuration.GetConnectionString("OracleConnection"),
                 o => o.MigrationsAssembly("TaskManagement.Infrastructure"));
             break;
-        case "Postgres":
         default:
-            options.UseNpgsql(
-                builder.Configuration.GetConnectionString("PostgresConnection"),
+            options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"),
                 o => o.MigrationsAssembly("TaskManagement.Infrastructure"));
             break;
     }
 });
-
 // ─── JWT: Strongly-typed config binding ───────────────────────────────────────
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
-
 // ─── Authentication & Authorization ───────────────────────────────────────────
 builder.Services.AddAuthentication(options =>
 {
@@ -56,39 +50,64 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = jwtSettings.Audience,
         ValidateLifetime = true,
-        // ClockSkew sıfırlanır; token tam süresi dolduğunda geçersiz sayılır.
         ClockSkew = TimeSpan.Zero
     };
 });
-
 builder.Services.AddAuthorization();
-
 // ─── Repository & Unit of Work ────────────────────────────────────────────────
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 // ─── Application Services ─────────────────────────────────────────────────────
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-
 // ─── AutoMapper ───────────────────────────────────────────────────────────────
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
-
-// ─── Swagger ──────────────────────────────────────────────────────────────────
+// ─── Swagger: JWT Bearer desteği ile ─────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Task Management API",
+        Version = "v1",
+        Description = "Kişisel Görev Yönetim Sistemi REST API"
+    });
+    // Swagger UI'da "Authorize" butonu; token ile korumalı endpoint'ler test edilebilir.
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT token girin. Örnek: Bearer eyJhbGci..."
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 var app = builder.Build();
-
+// Global exception handler; tüm işlenmemiş exception'lar ApiResponse formatında döner.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
 // UseAuthentication, UseAuthorization'dan önce gelmek zorunda; middleware sırası kritiktir.
 app.UseAuthentication();
