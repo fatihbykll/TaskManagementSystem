@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -54,6 +55,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddAuthorization();
+// ─── Dosya yükleme: 10 MB limit ───────────────────────────────────────────────
+builder.Services.Configure<FormOptions>(o => o.MultipartBodyLengthLimit = 10 * 1024 * 1024);
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
 // ─── Repository & Unit of Work ────────────────────────────────────────────────
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -62,6 +66,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 // ─── AutoMapper ───────────────────────────────────────────────────────────────
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 // ─── Swagger: JWT Bearer desteği ile ─────────────────────────────────────────
@@ -75,7 +81,6 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Kişisel Görev Yönetim Sistemi REST API"
     });
-    // Swagger UI'da "Authorize" butonu; token ile korumalı endpoint'ler test edilebilir.
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -101,6 +106,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 var app = builder.Build();
+// wwwroot/uploads dizininin varlığını garanti eder.
+var uploadsDir = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads", "attachments");
+Directory.CreateDirectory(uploadsDir);
 // Global exception handler; tüm işlenmemiş exception'lar ApiResponse formatında döner.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
@@ -109,7 +117,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseHttpsRedirection();
-// UseAuthentication, UseAuthorization'dan önce gelmek zorunda; middleware sırası kritiktir.
+app.UseStaticFiles();
+// UseAuthentication, UseAuthorization'dan önce gelmek zorunda.
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
