@@ -49,4 +49,30 @@ public class Repository<T> : IRepository<T> where T : class
 
     public void Delete(T entity)
         => _dbSet.Remove(entity);
+
+    /// <summary>
+    /// AsNoTracking() eklenmez; servis katmanı gerekirse query üzerinde ekleyebilir.
+    /// </summary>
+    public IQueryable<T> Query()
+        => _dbSet.AsQueryable();
+
+    /// <summary>
+    /// Skip/Take ve Count sorgularını tek transaction içinde çalıştırır.
+    /// N+1 önlenmesi için Count ve liste aynı IQueryable'dan türetilir.
+    /// </summary>
+    public async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(
+        IQueryable<T> query,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
 }

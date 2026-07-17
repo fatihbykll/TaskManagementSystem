@@ -17,4 +17,20 @@ public interface IRepository<T> where T : class
     Task AddAsync(T entity, CancellationToken cancellationToken = default);
     void Update(T entity);
     void Delete(T entity);
+
+    /// <summary>
+    /// Ham IQueryable döner; servis katmanı LINQ filtrelerini DB'ye SQL olarak göndermek için kullanır.
+    /// EF Core-specifik materializasyon (CountAsync, ToListAsync) Infrastructure'da kalır.
+    /// </summary>
+    IQueryable<T> Query();
+
+    /// <summary>
+    /// Dışarıdan oluşturulmuş IQueryable üzerinde sayfalama uygular ve sonucu materializes eder.
+    /// Skip/Take ve Count DB'de çalışır; belleğe yalnızca istenen sayfa yüklenir.
+    /// </summary>
+    Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(
+        IQueryable<T> query,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default);
 }
