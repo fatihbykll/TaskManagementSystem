@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using TaskManagement.Application.Wrappers;
 
@@ -5,8 +6,7 @@ namespace TaskManagement.API.Middleware;
 
 /// <summary>
 /// Pipeline'daki tüm işlenmemiş exception'ları merkezi olarak yakalar.
-/// İstemci her zaman ApiResponse formatında yanıt alır; exception detayı
-/// production ortamında expose edilmez.
+/// Her isteğe correlation ID atar; hata takibi ve distributed tracing için zorunludur.
 /// </summary>
 public class ExceptionHandlingMiddleware
 {
@@ -31,14 +31,40 @@ public class ExceptionHandlingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // X-Correlation-Id header yoksa yeni GUID üretilir; istemci hata raporlamasında kullanabilir.
+        var correlationId = context.Request.Headers["X-Correlation-Id"].FirstOrDefault()
+                            ?? Guid.NewGuid().ToString();
+
+        context.Response.Headers["X-Correlation-Id"] = correlationId;
+
+        var sw = Stopwatch.StartNew();
+
         try
         {
             await _next(context);
+            sw.Stop();
+
+            // Başarılı isteklerin süresi bilgi amaçlı loglanır; yavaş endpoint tespiti için kullanılır.
+            _logger.LogInformation(
+                "HTTP {Method} {Path} → {StatusCode} | {Elapsed}ms | CorrelationId: {CorrelationId}",
+                context.Request.Method,
+                context.Request.Path,
+                context.Response.StatusCode,
+                sw.ElapsedMilliseconds,
+                correlationId);
         }
         catch (Exception ex)
         {
-            // Structured logging; korelasyon için request path de kaydedilir.
-            _logger.LogError(ex, "İşlenmemiş exception — Path: {Path}", context.Request.Path);
+            sw.Stop();
+
+            // Structured logging: correlation ID ile exception izlenebilir.
+            _logger.LogError(ex,
+                "İşlenmemiş exception — {Method} {Path} | {Elapsed}ms | CorrelationId: {CorrelationId}",
+                context.Request.Method,
+                context.Request.Path,
+                sw.ElapsedMilliseconds,
+                correlationId);
+
             await WriteErrorResponseAsync(context, ex);
         }
     }
