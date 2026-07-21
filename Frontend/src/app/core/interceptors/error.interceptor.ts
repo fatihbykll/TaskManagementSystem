@@ -1,16 +1,15 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { catchError } from 'rxjs';
+import { ErrorHandlingService } from '../services/error-handling.service';
+/**
+ * Global HTTP hata yakalayıcısı.
+ * Her HTTP isteğinin ardından hata çıkarsa ErrorHandlingService'e delege eder.
+ * Böylece her servis veya component'te ayrı catchError yazmak gerekmez (DRY).
+ */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const router = inject(Router);
+  const errorService = inject(ErrorHandlingService);
   return next(req).pipe(
-    catchError(err => {
-      if (err.status === 401) {
-        localStorage.removeItem('auth_token');
-        router.navigate(['/login']);
-      }
-      return throwError(() => err);
-    })
+    catchError(err => errorService.handleError(err))
   );
 };
