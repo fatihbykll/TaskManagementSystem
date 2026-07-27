@@ -1,0 +1,65 @@
+@if (isLoggedIn) {
+  @if (isLoading$ | async) {
+    <mat-progress-bar mode="indeterminate" class="global-progress"></mat-progress-bar>
+  }
+  <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav
+      #sidenav
+      [mode]="(isMobile$ | async) ? 'over' : 'side'"
+      [opened]="(isMobile$ | async) === false"
+      class="sidenav">
+      <div class="sidenav-logo">
+        <mat-icon class="logo-icon">task_alt</mat-icon>
+        <span class="logo-text">TaskManager</span>
+      </div>
+      <mat-divider></mat-divider>
+      <mat-nav-list>
+        @for (item of navItems; track item.route) {
+          <a mat-list-item
+             [routerLink]="item.route"
+             routerLinkActive="active-link"
+             (click)="onNavItemClick()">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content class="sidenav-content">
+      <mat-toolbar class="toolbar" color="primary">
+        @if (isMobile$ | async) {
+          <button mat-icon-button (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+          </button>
+        }
+        <span class="toolbar-title">Task Management</span>
+        <span class="spacer"></span>
+        <button mat-icon-button (click)="toggleTheme()"
+                [matTooltip]="(isDarkMode$ | async) ? 'Açık Tema' : 'Koyu Tema'">
+          <mat-icon>{{ (isDarkMode$ | async) ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="userMenu">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          @if (currentUser) {
+            <div class="user-info-menu">
+              <strong>{{ currentUser.firstName }} {{ currentUser.lastName }}</strong>
+              <small>{{ currentUser.email }}</small>
+            </div>
+            <mat-divider></mat-divider>
+          }
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Çıkış Yap</span>
+          </button>
+        </mat-menu>
+      </mat-toolbar>
+      <div class="page-content">
+        <ng-content></ng-content>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+} @else {
+  <ng-content></ng-content>
+}
