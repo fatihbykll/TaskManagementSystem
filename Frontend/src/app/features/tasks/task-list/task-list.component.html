@@ -1,0 +1,76 @@
+<div class="task-list">
+  <!-- Başlık ve Filtreler -->
+  <div class="list-header">
+    <div class="title-row">
+      <h1>Görevlerim</h1>
+      @if (pagedData) {
+        <span class="total-badge">{{ pagedData.totalCount }} görev</span>
+      }
+    </div>
+    <div class="filter-row">
+      <!-- Arama -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Görev ara...</mat-label>
+        <input matInput [formControl]="searchControl">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+      <!-- Status filtresi -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Durum</mat-label>
+        <mat-select [formControl]="statusControl">
+          <mat-option value="">Tümü</mat-option>
+          @for (opt of statusOptions; track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <!-- Priority filtresi -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Öncelik</mat-label>
+        <mat-select [formControl]="priorityControl">
+          <mat-option value="">Tümü</mat-option>
+          @for (opt of priorityOptions; track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-stroked-button (click)="clearFilters()" class="clear-btn">
+        <mat-icon>filter_alt_off</mat-icon>
+        Temizle
+      </button>
+    </div>
+  </div>
+  <!-- Yükleniyor -->
+  @if (isLoading) {
+    <div class="loading-center">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+  <!-- Görev ızgarası -->
+  @if (!isLoading) {
+    @if (tasks.length === 0) {
+      <div class="empty-state">
+        <mat-icon>assignment_turned_in</mat-icon>
+        <h3>Görev bulunamadı</h3>
+        <p>Filtreleri değiştirin veya yeni bir görev ekleyin.</p>
+      </div>
+    } @else {
+      <div class="task-grid">
+        @for (task of tasks; track task.id) {
+          <app-task-card [task]="task" (action)="onTaskAction($event)"></app-task-card>
+        }
+      </div>
+      <!-- Sayfalama -->
+      @if (pagedData && pagedData.totalCount > pageSize) {
+        <mat-paginator
+          [length]="pagedData.totalCount"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage"
+          [pageSizeOptions]="[6, 9, 18, 36]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      }
+    }
+  }
+</div>
