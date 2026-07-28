@@ -10,7 +10,6 @@ namespace TaskManagement.Application.Mappings
         {
             // User mappings
             CreateMap<User, UserDto>();
-            // PasswordHash is not mapped because UserDto does not contain it
 
             CreateMap<CreateUserDto, User>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
