@@ -1,0 +1,79 @@
+<div class="task-detail">
+  @if (isLoading) {
+    <div class="loading-center"><mat-spinner diameter="48"></mat-spinner></div>
+  }
+  @if (!isLoading && task) {
+    <!-- Üst aksiyon çubuğu -->
+    <div class="top-bar">
+      <button mat-stroked-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon> Görevler
+      </button>
+      <div class="actions">
+        <button mat-stroked-button color="primary" (click)="openEditDialog()">
+          <mat-icon>edit</mat-icon> Düzenle
+        </button>
+        <button mat-flat-button color="warn" (click)="openDeleteDialog()">
+          <mat-icon>delete</mat-icon> Sil
+        </button>
+      </div>
+    </div>
+    <mat-card class="detail-card">
+      <!-- Priority renk çubuğu -->
+      <div class="priority-bar" [style.background]="priority?.color"></div>
+      <mat-card-header>
+        <div class="header-badges">
+          <span class="badge priority-badge" [style.color]="priority?.color">
+            {{ priority?.label }}
+          </span>
+          <span class="badge status-badge" [style.color]="status?.color" [style.border-color]="status?.color">
+            <mat-icon class="badge-icon">{{ status?.icon }}</mat-icon>
+            {{ status?.label }}
+          </span>
+        </div>
+        <mat-card-title>{{ task.title }}</mat-card-title>
+        <mat-card-subtitle>
+          Oluşturulma: {{ task.createdAt | date:'dd MMMM yyyy HH:mm':'':'tr' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-divider></mat-divider>
+        <!-- Açıklama -->
+        <div class="section">
+          <h3 class="section-title"><mat-icon>description</mat-icon> Açıklama</h3>
+          <p class="description">{{ task.description || 'Açıklama girilmemiş.' }}</p>
+        </div>
+        <mat-divider></mat-divider>
+        <!-- Detay grid -->
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Bitiş Tarihi</span>
+            <span class="detail-value">
+              @if (task.dueDate) {
+                {{ task.dueDate | date:'dd MMMM yyyy':'':'tr' }}
+              } @else {
+                <span class="none">Belirtilmemiş</span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Son Güncelleme</span>
+            <span class="detail-value">
+              @if (task.updatedAt) {
+                {{ task.updatedAt | date:'dd MMMM yyyy HH:mm':'':'tr' }}
+              } @else {
+                <span class="none">Henüz güncellenmedi</span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Kategori</span>
+            <span class="detail-value">
+              {{ task.categoryId ? task.categoryId : '' }}
+              @if (!task.categoryId) { <span class="none">Kategori yok</span> }
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
