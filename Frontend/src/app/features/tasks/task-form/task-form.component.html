@@ -1,0 +1,83 @@
+<div class="form-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ isEditMode ? 'edit' : 'add_task' }}</mat-icon>
+    {{ isEditMode ? 'Görevi Düzenle' : 'Yeni Görev Ekle' }}
+  </h2>
+  <mat-dialog-content>
+    <form [formGroup]="taskForm" class="task-form">
+      <!-- Başlık -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Başlık *</mat-label>
+        <input matInput formControlName="title" placeholder="Görev başlığını girin">
+        <mat-icon matPrefix>title</mat-icon>
+        @if (title?.hasError('required') && title?.touched) {
+          <mat-error>Başlık zorunludur.</mat-error>
+        } @else if (title?.hasError('minlength') && title?.touched) {
+          <mat-error>En az 3 karakter giriniz.</mat-error>
+        } @else if (title?.hasError('maxlength') && title?.touched) {
+          <mat-error>En fazla 100 karakter girilebilir.</mat-error>
+        }
+        <mat-hint align="end">{{ title?.value?.length ?? 0 }}/100</mat-hint>
+      </mat-form-field>
+      <!-- Açıklama -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Açıklama</mat-label>
+        <textarea matInput formControlName="description"
+                  placeholder="Görev hakkında detay..." rows="3"></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+        @if (description?.hasError('maxlength') && description?.touched) {
+          <mat-error>En fazla 500 karakter girilebilir.</mat-error>
+        }
+        <mat-hint align="end">{{ description?.value?.length ?? 0 }}/500</mat-hint>
+      </mat-form-field>
+      <!-- Öncelik + Tarih yan yana -->
+      <div class="two-col">
+        <mat-form-field appearance="outline">
+          <mat-label>Öncelik *</mat-label>
+          <mat-select formControlName="priority">
+            @for (opt of priorityOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+          <mat-icon matPrefix>flag</mat-icon>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Bitiş Tarihi</mat-label>
+          <input matInput [matDatepicker]="picker"
+                 formControlName="dueDate" [min]="minDate">
+          <mat-icon matPrefix>calendar_today</mat-icon>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          @if (dueDate?.hasError('pastDate') && dueDate?.touched) {
+            <mat-error>Geçmiş tarih seçilemez.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+      <!-- Kategori -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Kategori</mat-label>
+        <mat-select formControlName="categoryId">
+          <mat-option [value]="null">Kategori yok</mat-option>
+          @for (cat of categories; track cat.id) {
+            <mat-option [value]="cat.id">
+              <span class="cat-dot" [style.background]="cat.colorCode"></span>
+              {{ cat.name }}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix>category</mat-icon>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button [mat-dialog-close]="false">Vazgeç</button>
+    <button mat-flat-button color="primary"
+            [disabled]="isLoading" (click)="onSubmit()">
+      @if (isLoading) {
+        <mat-spinner diameter="18"></mat-spinner>
+      } @else {
+        {{ isEditMode ? 'Güncelle' : 'Oluştur' }}
+      }
+    </button>
+  </mat-dialog-actions>
+</div>
