@@ -1,0 +1,36 @@
+<div class="board" cdkDropListGroup>
+  @for (col of columns; track col.status) {
+    <div class="board-column">
+      <div class="col-header" [style.background]="col.gradient">
+        <mat-icon>{{ col.icon }}</mat-icon>
+        <span>{{ col.label }}</span>
+        <span class="task-count">{{ col.tasks.length }}</span>
+      </div>
+      <div class="col-body" cdkDropList
+           [id]="'col-' + col.status"
+           [cdkDropListData]="col.tasks"
+           [cdkDropListConnectedTo]="dropListIds"
+           (cdkDropListDropped)="onDrop($event, col)">
+        @for (task of col.tasks; track task.id) {
+          <div class="kanban-card" cdkDrag>
+            <div class="drag-handle" cdkDragHandle><mat-icon>drag_indicator</mat-icon></div>
+            <div class="priority-stripe" [style.background]="pColor[task.priority]"></div>
+            <div class="card-body">
+              <p class="card-title">{{ task.title }}</p>
+              <div class="card-meta">
+                <span class="p-badge" [style.color]="pColor[task.priority]">{{ pLabel[task.priority] }}</span>
+                @if (dueDateWarn(task); as w) {
+                  <span class="due-warn" [style.color]="w.color"><mat-icon>alarm</mat-icon>{{ w.text }}</span>
+                }
+              </div>
+            </div>
+            <div *cdkDragPlaceholder class="drag-placeholder"></div>
+          </div>
+        }
+        @if (col.tasks.length === 0) {
+          <div class="empty-col"><mat-icon>inbox</mat-icon><span>Gorev yok</span></div>
+        }
+      </div>
+    </div>
+  }
+</div>
