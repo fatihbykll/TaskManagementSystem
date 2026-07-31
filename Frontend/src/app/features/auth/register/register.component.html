@@ -1,0 +1,93 @@
+<div class="auth-container">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <div class="logo">
+        <mat-icon>person_add</mat-icon>
+      </div>
+      <mat-card-title>Hesap Oluştur</mat-card-title>
+      <mat-card-subtitle>Görev yönetimine hemen başla</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="name-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Ad</mat-label>
+            <input matInput formControlName="firstName" placeholder="Adınız">
+            <mat-icon matPrefix>person</mat-icon>
+            @if (firstName?.hasError('required') && firstName?.touched) {
+              <mat-error>Ad zorunludur.</mat-error>
+            } @else if (firstName?.hasError('minlength') && firstName?.touched) {
+              <mat-error>En az 2 karakter giriniz.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Soyad</mat-label>
+            <input matInput formControlName="lastName" placeholder="Soyadınız">
+            @if (lastName?.hasError('required') && lastName?.touched) {
+              <mat-error>Soyad zorunludur.</mat-error>
+            } @else if (lastName?.hasError('minlength') && lastName?.touched) {
+              <mat-error>En az 2 karakter giriniz.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>E-posta Adresi</mat-label>
+          <input matInput type="email" formControlName="email"
+                 placeholder="ornek@mail.com" autocomplete="email">
+          <mat-icon matPrefix>email</mat-icon>
+          @if (email?.hasError('required') && email?.touched) {
+            <mat-error>E-posta adresi zorunludur.</mat-error>
+          } @else if (email?.hasError('email') && email?.touched) {
+            <mat-error>Geçerli bir e-posta adresi giriniz.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Şifre</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'"
+                 formControlName="password" autocomplete="new-password">
+          <mat-icon matPrefix>lock</mat-icon>
+          <button mat-icon-button matSuffix type="button"
+                  (click)="hidePassword = !hidePassword">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (password?.hasError('required') && password?.touched) {
+            <mat-error>Şifre zorunludur.</mat-error>
+          } @else if (password?.hasError('minlength') && password?.touched) {
+            <mat-error>Şifre en az 8 karakter olmalıdır.</mat-error>
+          } @else if (password?.hasError('pattern') && password?.touched) {
+            <mat-error>Şifre en az bir harf ve bir rakam içermelidir.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Şifre Tekrar</mat-label>
+          <input matInput [type]="hideConfirmPassword ? 'password' : 'text'"
+                 formControlName="confirmPassword" autocomplete="new-password">
+          <mat-icon matPrefix>lock_reset</mat-icon>
+          <button mat-icon-button matSuffix type="button"
+                  (click)="hideConfirmPassword = !hideConfirmPassword">
+            <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (confirmPassword?.hasError('required') && confirmPassword?.touched) {
+            <mat-error>Şifre tekrarı zorunludur.</mat-error>
+          } @else if (registerForm.hasError('passwordMismatch') && confirmPassword?.touched) {
+            <mat-error>Şifreler eşleşmiyor.</mat-error>
+          }
+        </mat-form-field>
+        <button mat-flat-button class="submit-btn" type="submit"
+                [disabled]="isLoading">
+          @if (isLoading) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            Kayıt Ol
+          }
+        </button>
+      </form>
+    </mat-card-content>
+    <mat-card-actions>
+      <p class="redirect-text">
+        Zaten hesabın var mı?
+        <a routerLink="/login" class="link">Giriş Yap</a>
+      </p>
+    </mat-card-actions>
+  </mat-card>
+</div>
