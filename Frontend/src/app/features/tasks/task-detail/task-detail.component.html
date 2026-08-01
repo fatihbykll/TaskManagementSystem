@@ -75,5 +75,15 @@
         </div>
       </mat-card-content>
     </mat-card>
+    
+    <!-- Yorumlar ve Eklentiler (Yan Yana veya Alt Alta) -->
+    <div class="extra-sections">
+      <div class="section-container">
+        <app-task-attachments [taskId]="task.id"></app-task-attachments>
+      </div>
+      <div class="section-container">
+        <app-task-comments [taskId]="task.id"></app-task-comments>
+      </div>
+    </div>
   }
 </div>
