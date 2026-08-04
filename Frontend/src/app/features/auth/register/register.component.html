@@ -1,9 +1,7 @@
 <div class="auth-container">
   <mat-card class="auth-card">
     <mat-card-header>
-      <div class="logo">
-        <mat-icon>person_add</mat-icon>
-      </div>
+      <div class="logo"><mat-icon>person_add</mat-icon></div>
       <mat-card-title>Hesap Oluştur</mat-card-title>
       <mat-card-subtitle>Görev yönetimine hemen başla</mat-card-subtitle>
     </mat-card-header>
@@ -31,6 +29,18 @@
           </mat-form-field>
         </div>
         <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Kullanıcı Adı</mat-label>
+          <input matInput formControlName="username" placeholder="kullanici_adi" autocomplete="username">
+          <mat-icon matPrefix>badge</mat-icon>
+          @if (username?.hasError('required') && username?.touched) {
+            <mat-error>Kullanıcı adı zorunludur.</mat-error>
+          } @else if (username?.hasError('minlength') && username?.touched) {
+            <mat-error>En az 3 karakter giriniz.</mat-error>
+          } @else if (username?.hasError('maxlength') && username?.touched) {
+            <mat-error>En fazla 50 karakter girilebilir.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>E-posta Adresi</mat-label>
           <input matInput type="email" formControlName="email"
                  placeholder="ornek@mail.com" autocomplete="email">
@@ -46,8 +56,7 @@
           <input matInput [type]="hidePassword ? 'password' : 'text'"
                  formControlName="password" autocomplete="new-password">
           <mat-icon matPrefix>lock</mat-icon>
-          <button mat-icon-button matSuffix type="button"
-                  (click)="hidePassword = !hidePassword">
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
             <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           @if (password?.hasError('required') && password?.touched) {
@@ -63,8 +72,7 @@
           <input matInput [type]="hideConfirmPassword ? 'password' : 'text'"
                  formControlName="confirmPassword" autocomplete="new-password">
           <mat-icon matPrefix>lock_reset</mat-icon>
-          <button mat-icon-button matSuffix type="button"
-                  (click)="hideConfirmPassword = !hideConfirmPassword">
+          <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
             <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           @if (confirmPassword?.hasError('required') && confirmPassword?.touched) {
@@ -73,20 +81,14 @@
             <mat-error>Şifreler eşleşmiyor.</mat-error>
           }
         </mat-form-field>
-        <button mat-flat-button class="submit-btn" type="submit"
-                [disabled]="isLoading">
-          @if (isLoading) {
-            <mat-spinner diameter="20"></mat-spinner>
-          } @else {
-            Kayıt Ol
-          }
+        <button mat-flat-button class="submit-btn" type="submit" [disabled]="isLoading">
+          @if (isLoading) { <mat-spinner diameter="20"></mat-spinner> } @else { Kayıt Ol }
         </button>
       </form>
     </mat-card-content>
     <mat-card-actions>
       <p class="redirect-text">
-        Zaten hesabın var mı?
-        <a routerLink="/login" class="link">Giriş Yap</a>
+        Zaten hesabın var mı? <a routerLink="/login" class="link">Giriş Yap</a>
       </p>
     </mat-card-actions>
   </mat-card>
