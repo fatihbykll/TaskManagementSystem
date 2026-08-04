@@ -1,8 +1,27 @@
-/* You can add global styles to this file, and also import other style files */
-
+@use '@angular/material' as mat;
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-/* ── Global Snackbar stilleri ─────────────────────────────────── */
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+/* ── Dark Theme ────────────────────────────────────────────────── */
+html.dark-theme {
+  body { background-color: #121212; color: #e0e0e0; }
+  .mat-drawer-container { background-color: #121212; }
+  .mat-sidenav { background-color: #1e1e1e !important; }
+  .mat-toolbar { background-color: #1e1e1e !important; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .mat-card, .mat-mdc-card { background-color: #1e1e1e !important; color: #e0e0e0 !important; }
+  .mat-mdc-list-item:hover { background: rgba(255,255,255,0.05) !important; }
+  .active-link { background: rgba(102,126,234,0.2) !important; }
+  /* Form fields */
+  .mat-mdc-text-field-wrapper { background-color: #2a2a2a !important; }
+  .mat-mdc-form-field-subscript-wrapper { background: transparent !important; }
+  /* Menu */
+  .mat-mdc-menu-panel { background-color: #2a2a2a !important; color: #e0e0e0 !important; }
+  .mat-mdc-menu-item { color: #e0e0e0 !important; }
+}
+/* ── Global Snackbar stilleri ──────────────────────────────────── */
 .error-snackbar {
   --mdc-snackbar-container-color: #d32f2f;
   --mdc-snackbar-supporting-text-color: #ffffff;

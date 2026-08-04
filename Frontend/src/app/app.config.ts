@@ -5,13 +5,15 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideAnimations(),
     provideHttpClient(
-      withInterceptors([jwtInterceptor, errorInterceptor])
+      // Sıra önemlidir: önce JWT eklenir, sonra hata yakalanır, son olarak loading kapatılır.
+      withInterceptors([jwtInterceptor, errorInterceptor, loadingInterceptor])
     )
   ]
 };

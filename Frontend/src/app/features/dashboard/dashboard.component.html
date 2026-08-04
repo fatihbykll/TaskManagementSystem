@@ -1,0 +1,59 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Görevlerinizin genel özeti</p>
+  </div>
+  @if (isLoading) {
+    <div class="loading-center">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else {
+    <!-- İstatistik Kartları -->
+    <div class="stat-grid">
+      @for (card of statCards; track card.label) {
+        <mat-card class="stat-card" [style.background]="card.gradient">
+          <mat-card-content>
+            <div class="stat-content">
+              <div class="stat-info">
+                <span class="stat-label">{{ card.label }}</span>
+                <span class="stat-value">{{ card.value }}</span>
+              </div>
+              <mat-icon class="stat-icon">{{ card.icon }}</mat-icon>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+    <!-- Vadesi Geçmiş Görevler -->
+    <mat-card class="overdue-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar style="color:#f44336">warning</mat-icon>
+        <mat-card-title>Vadesi Geçmiş Görevler</mat-card-title>
+        <mat-card-subtitle>Acil dikkat gerektiren görevler</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (overdueTasks.length === 0) {
+          <div class="empty-state">
+            <mat-icon>check_circle</mat-icon>
+            <p>Vadesi geçmiş görev yok 🎉</p>
+          </div>
+        } @else {
+          <div class="overdue-list">
+            @for (task of overdueTasks; track task.id) {
+              <div class="overdue-item">
+                <mat-icon class="overdue-dot">fiber_manual_record</mat-icon>
+                <div class="overdue-info">
+                  <span class="overdue-title">{{ task.title }}</span>
+                  <span class="overdue-date">Son tarih: {{ task.dueDate | date:'dd MMM yyyy' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button color="primary" routerLink="/tasks">Tüm Görevleri Gör</a>
+      </mat-card-actions>
+    </mat-card>
+  }
+</div>

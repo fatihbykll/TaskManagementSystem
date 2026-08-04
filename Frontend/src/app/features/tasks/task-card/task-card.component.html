@@ -1,0 +1,67 @@
+<mat-card class="task-card" [class.completed]="task.status === TaskStatus.Completed || task.status === TaskStatus.Cancelled">
+  <!-- Sol kenarda priority renk çubuğu -->
+  <div class="priority-bar" [style.background-color]="priority.color"></div>
+  <mat-card-header>
+    <!-- Priority badge -->
+    <span class="priority-badge"
+          [style.color]="priority.color"
+          [style.background]="priority.bg">
+      {{ priority.label }}
+    </span>
+    <!-- Üst sağ: aksiyon menüsü -->
+    <button mat-icon-button class="action-menu-btn" [matMenuTriggerFor]="actionMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #actionMenu="matMenu">
+      <button mat-menu-item (click)="onEdit()">
+        <mat-icon>edit</mat-icon><span>Düzenle</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="onStatusChange(TaskStatus.InProgress)"
+              [disabled]="task.status === TaskStatus.InProgress">
+        <mat-icon>autorenew</mat-icon><span>Devam Ediyor</span>
+      </button>
+      <button mat-menu-item (click)="onStatusChange(TaskStatus.Completed)"
+              [disabled]="task.status === TaskStatus.Completed">
+        <mat-icon>check_circle</mat-icon><span>Tamamlandı</span>
+      </button>
+      <button mat-menu-item (click)="onStatusChange(TaskStatus.Cancelled)"
+              [disabled]="task.status === TaskStatus.Cancelled">
+        <mat-icon>cancel</mat-icon><span>İptal Et</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item class="delete-item" (click)="onDelete()">
+        <mat-icon>delete</mat-icon><span>Sil</span>
+      </button>
+    </mat-menu>
+    <mat-card-title class="task-title">{{ task.title }}</mat-card-title>
+    <mat-card-subtitle class="task-desc">{{ task.description }}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <!-- Status progress bar -->
+    <div class="progress-section">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill"
+             [style.width.%]="progressValue"
+             [style.background-color]="status.color">
+        </div>
+      </div>
+      <div class="status-chip" [style.color]="status.color" [style.border-color]="status.color">
+        <mat-icon class="status-icon">{{ status.icon }}</mat-icon>
+        <span>{{ status.label }}</span>
+      </div>
+    </div>
+    <!-- Metadata row: due date + category -->
+    <div class="meta-row">
+      @if (dueDateInfo) {
+        <div class="due-date" [style.color]="dueDateInfo.color" [class.warning]="dueDateInfo.warning">
+          <mat-icon class="meta-icon">{{ dueDateInfo.icon }}</mat-icon>
+          <span>{{ dueDateInfo.label }}</span>
+        </div>
+      }
+      @if (!task.categoryId) {
+        <span class="no-category">Kategori yok</span>
+      }
+    </div>
+  </mat-card-content>
+</mat-card>

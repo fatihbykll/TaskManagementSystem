@@ -40,3 +40,4 @@ Thumbs.db
 # Logs
 *.log
 appsettings.Development.json
+Backend/TaskManagement.API/logs/
