@@ -172,3 +172,6 @@ finally
     // Buffer'daki tüm loglar flush edilir; uygulama kapanırken log kaybı önlenir.
     Log.CloseAndFlush();
 }
+
+// WebApplicationFactory erişimi için gerekli (Test projesi kullanır)
+public partial class Program { }
