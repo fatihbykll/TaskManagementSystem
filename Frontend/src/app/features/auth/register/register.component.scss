@@ -90,3 +90,17 @@ mat-card-actions {
   text-decoration: none;
   &:hover { text-decoration: underline; }
 }
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .register-card,
+  .auth-card,
+  mat-card {
+    margin: 0.5rem;
+    border-radius: 12px !important;
+  }
+  .name-row,
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

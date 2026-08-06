@@ -71,3 +71,12 @@
   padding: 0.75rem 1rem;
   small { color: #888; margin-top: 2px; }
 }
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidenav       { width: 200px; }
+  .page-content  { padding: 1rem; }
+  .toolbar-title { font-size: 0.95rem; }
+}
+@media (max-width: 480px) {
+  .page-content { padding: 0.75rem 0.5rem; }
+}

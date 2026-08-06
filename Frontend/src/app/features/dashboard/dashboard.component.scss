@@ -89,3 +89,13 @@
   .overdue-title { font-weight: 600; font-size: 0.95rem; }
   .overdue-date { font-size: 0.8rem; color: #f44336; margin-top: 2px; }
 }
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .dashboard-header h1 { font-size: 1.35rem; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .dashboard-header h1 { font-size: 1.15rem; }
+  .stat-grid { grid-template-columns: 1fr; }
+  .stat-card .stat-value { font-size: 1.6rem; }
+}
