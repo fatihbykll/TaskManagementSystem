@@ -9,6 +9,7 @@ namespace TaskManagement.Application.DTOs
         public string LastName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; }
+        public string Role { get; set; } = "User";
         // PasswordHash is intentionally excluded
     }
 }
