@@ -20,10 +20,9 @@ export class AuthService {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.baseUrl}/login`, request).pipe(
       tap(response => {
         if (response.success) {
-          this.tokenService.setToken(response.data.token);
-          this.currentUserSubject.next(response.data.user);
-          // Token alındıktan sonra proaktif auto-logout zamanlayıcısını kur.
-          this.sessionService.startSession(response.data.token);
+          this.tokenService.setToken(response.data.accessToken);
+          this.currentUserSubject.next(this.parseUserFromToken(response.data.accessToken));
+          this.sessionService.startSession(response.data.accessToken);
         }
       })
     );
@@ -32,24 +31,37 @@ export class AuthService {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.baseUrl}/register`, request).pipe(
       tap(response => {
         if (response.success) {
-          this.tokenService.setToken(response.data.token);
-          this.currentUserSubject.next(response.data.user);
-          this.sessionService.startSession(response.data.token);
+          this.tokenService.setToken(response.data.accessToken);
+          this.currentUserSubject.next(this.parseUserFromToken(response.data.accessToken));
+          this.sessionService.startSession(response.data.accessToken);
         }
       })
     );
   }
+  /**
+   * Backend ayrı bir /me endpoint'i sunmadığından, kullanıcı bilgileri
+   * JWT payload'ından decode edilir. İmza doğrulaması Backend'e aittir.
+   */
+  private parseUserFromToken(token: string): User | null {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return {
+        id:        payload['sub']         ?? '',
+        email:     payload['email']       ?? '',
+        username:  payload['unique_name'] ?? '',
+        firstName: payload['given_name']  ?? payload['unique_name'] ?? '',
+        lastName:  payload['family_name'] ?? ''
+      };
+    } catch {
+      return null;
+    }
+  }
   logout(): void {
     this.tokenService.removeToken();
     this.currentUserSubject.next(null);
-    // Zamanlayıcıyı temizle; süresi dolmadan çıkış yapılıyor.
     this.sessionService.endSession();
     this.router.navigate(['/login']);
   }
-  getCurrentUser(): User | null {
-    return this.currentUserSubject.getValue();
-  }
-  isLoggedIn(): boolean {
-    return this.tokenService.isLoggedIn();
-  }
+  getCurrentUser(): User | null { return this.currentUserSubject.getValue(); }
+  isLoggedIn(): boolean         { return this.tokenService.isLoggedIn(); }
 }

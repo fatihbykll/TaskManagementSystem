@@ -64,6 +64,15 @@
           <mat-icon>view_kanban</mat-icon>
         </mat-button-toggle>
       </mat-button-toggle-group>
+      <!-- Export Butonları -->
+      <button mat-stroked-button (click)="exportExcel()" matTooltip="Excel olarak indir"
+              style="color:#217346;border-color:#217346;">
+        <mat-icon>table_view</mat-icon> Excel
+      </button>
+      <button mat-stroked-button (click)="exportPdf()" matTooltip="PDF olarak indir"
+              style="color:#c0392b;border-color:#c0392b;">
+        <mat-icon>picture_as_pdf</mat-icon> PDF
+      </button>
       <!-- Yeni Görev -->
       <button mat-flat-button color="primary" (click)="openCreateDialog()">
         <mat-icon>add</mat-icon> Yeni Görev

@@ -112,3 +112,7 @@ mat-card-content {
   font-style: italic;
 }
 .delete-item { color: #c62828; mat-icon { color: #c62828; } }
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  :host { font-size: 0.9rem; }
+}

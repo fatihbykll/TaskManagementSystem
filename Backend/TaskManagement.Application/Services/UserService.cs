@@ -1,4 +1,8 @@
 using AutoMapper;
+using Microsoft.Extensions.Options;
+using TaskManagement.Application.Settings;
+
+using TaskManagement.Domain.Enums;
 using BCrypt.Net;
 using TaskManagement.Application.DTOs;
 using TaskManagement.Application.Interfaces;
@@ -15,11 +19,13 @@ public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly AppSettings _appSettings;
 
-    public UserService(IUnitOfWork unitOfWork, IMapper mapper)
+    public UserService(IUnitOfWork unitOfWork, IMapper mapper, IOptions<AppSettings> appSettings)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _appSettings = appSettings.Value;
     }
 
     public async Task<ApiResponse<UserDto>> RegisterAsync(
@@ -47,7 +53,10 @@ public class UserService : IUserService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            Role = dto.Email.Equals(_appSettings.AdminEmail ?? "", StringComparison.OrdinalIgnoreCase)
+                   ? UserRole.Admin
+                   : UserRole.User
         };
 
         await repo.AddAsync(user, cancellationToken);

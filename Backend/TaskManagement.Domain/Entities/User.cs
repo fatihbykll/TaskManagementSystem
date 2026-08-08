@@ -1,3 +1,4 @@
+using TaskManagement.Domain.Enums;
 namespace TaskManagement.Domain.Entities
 {
     public class User
@@ -11,6 +12,7 @@ namespace TaskManagement.Domain.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsActive { get; set; } = true;
+        public UserRole Role { get; set; } = UserRole.User;
 
         // Navigation Properties
         public ICollection<Category> Categories { get; set; } = new List<Category>();

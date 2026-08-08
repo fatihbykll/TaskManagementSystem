@@ -3,4 +3,5 @@
   <Project Path="TaskManagement.Application/TaskManagement.Application.csproj" />
   <Project Path="TaskManagement.Domain/TaskManagement.Domain.csproj" />
   <Project Path="TaskManagement.Infrastructure/TaskManagement.Infrastructure.csproj" />
+  <Project Path="TaskManagement.Tests/TaskManagement.Tests.csproj" />
 </Solution>

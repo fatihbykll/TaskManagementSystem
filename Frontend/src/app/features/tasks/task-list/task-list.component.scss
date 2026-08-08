@@ -36,3 +36,17 @@
   gap: 1rem; margin-bottom: 1.5rem;
 }
 mat-paginator { border-radius: 12px; background: transparent; }
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .filter-row, .filter-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .mat-column-description,
+  .mat-column-category { display: none; }
+}
+@media (max-width: 480px) {
+  .mat-column-dueDate,
+  .mat-column-priority { display: none; }
+  .page-header h1 { font-size: 1.2rem; }
+}

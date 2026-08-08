@@ -1,3 +1,4 @@
+import { ExportService } from '../../../core/services/export.service';
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -42,6 +43,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
   private readonly notification = inject(ErrorHandlingService);
   private readonly dialog       = inject(MatDialog);
   private readonly router       = inject(Router);
+  private readonly exportService = inject(ExportService);
   private readonly destroy$     = new Subject<void>();
   tasks: TaskItem[] = [];
   allTasks: TaskItem[] = [];   // Board view için tüm görevler
@@ -156,5 +158,27 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
   onPageChange(e: PageEvent): void { this.currentPage = e.pageIndex; this.pageSize = e.pageSize; this.loadTasks(); }
   clearFilters(): void { this.searchControl.reset(''); this.statusControl.reset(''); this.priorityControl.reset(''); }
+  exportExcel(): void {
+    this.exportService.exportToExcel(this.tasks.map(t => ({
+      title:       t.title,
+      description: t.description ?? '',
+      status:      t.status?.toString() ?? '',
+      priority:    t.priority?.toString() ?? '',
+      categoryName: t.categoryId ?? undefined,
+      dueDate:     t.dueDate,
+      createdAt:   t.createdAt,
+    })));
+  }
+  exportPdf(): void {
+    this.exportService.exportToPdf(this.tasks.map(t => ({
+      title:       t.title,
+      description: t.description ?? '',
+      status:      t.status?.toString() ?? '',
+      priority:    t.priority?.toString() ?? '',
+      categoryName: t.categoryId ?? undefined,
+      dueDate:     t.dueDate,
+      createdAt:   t.createdAt,
+    })));
+  }
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 }

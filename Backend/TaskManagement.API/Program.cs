@@ -9,6 +9,7 @@ using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Mappings;
 using TaskManagement.Application.Services;
 using TaskManagement.Application.Settings;
+// AppSettings using mevcut
 using TaskManagement.Domain.Interfaces;
 using TaskManagement.Infrastructure.Data;
 using TaskManagement.Infrastructure.Repositories;
@@ -44,6 +45,7 @@ try
         }
     });
     // ─── JWT: Strongly-typed config binding ───────────────────────────────────
+    builder.Services.Configure<AppSettings>(o => o.AdminEmail = builder.Configuration["AdminEmail"] ?? string.Empty);
     builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
     var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
     var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
@@ -172,3 +174,6 @@ finally
     // Buffer'daki tüm loglar flush edilir; uygulama kapanırken log kaybı önlenir.
     Log.CloseAndFlush();
 }
+
+// WebApplicationFactory erişimi için gerekli (Test projesi kullanır)
+public partial class Program { }

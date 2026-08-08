@@ -17,7 +17,7 @@ namespace TaskManagement.Infrastructure.Migrations.Postgres
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.28")
+                .HasAnnotation("ProductVersion", "8.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -235,6 +235,9 @@ namespace TaskManagement.Infrastructure.Migrations.Postgres
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -263,6 +266,7 @@ namespace TaskManagement.Infrastructure.Migrations.Postgres
                             IsActive = true,
                             LastName = "User",
                             PasswordHash = "$2a$11$K4GBPCLJiSYDAsZLxn5uWOQZQJlMdOJBwKFkZv8o5h7LjAqEi0Fje",
+                            Role = 0,
                             UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Username = "demo"
                         });
