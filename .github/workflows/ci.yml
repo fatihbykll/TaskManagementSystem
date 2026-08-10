@@ -25,12 +25,13 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - run: dotnet restore Backend/TaskManagement.API/TaskManagement.API.csproj
+      - run: dotnet restore
       - run: dotnet build Backend/TaskManagement.API/TaskManagement.API.csproj --no-restore -c Release
+      - run: dotnet build Backend/TaskManagement.Tests/TaskManagement.Tests.csproj --no-restore -c Release
       - run: dotnet test Backend/TaskManagement.Tests/TaskManagement.Tests.csproj -c Release
         env:
           ConnectionStrings__PostgresConnection: Host=localhost;Database=TaskManagementTestDb;Username=postgres;Password=postgres
-          JwtSettings__SecretKey: ci-test-secret-key-minimum-32-charsclear
+          JwtSettings__SecretKey: ci-test-super-secret-key-for-actions
           JwtSettings__Issuer: TaskManagementAPI
           JwtSettings__Audience: TaskManagementClient
           JwtSettings__ExpirationMinutes: 60
