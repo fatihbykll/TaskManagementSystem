@@ -25,7 +25,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - run: dotnet restore
+      - run: dotnet restore Backend/TaskManagement.API/TaskManagement.API.csproj
+      - run: dotnet restore Backend/TaskManagement.Tests/TaskManagement.Tests.csproj
       - run: dotnet build Backend/TaskManagement.API/TaskManagement.API.csproj --no-restore -c Release
       - run: dotnet build Backend/TaskManagement.Tests/TaskManagement.Tests.csproj --no-restore -c Release
       - run: dotnet test Backend/TaskManagement.Tests/TaskManagement.Tests.csproj -c Release
