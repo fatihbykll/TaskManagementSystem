@@ -36,7 +36,7 @@ jobs:
           JwtSettings__Issuer: TaskManagementAPI
           JwtSettings__Audience: TaskManagementClient
           JwtSettings__ExpirationMinutes: 60
-          AdminEmail: admin@test.com
+          AdminEmail: admin@milsoft.com
           DatabaseProvider: Postgres
 
   frontend:
