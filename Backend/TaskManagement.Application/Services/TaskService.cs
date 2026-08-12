@@ -118,8 +118,20 @@ public class TaskService : ITaskService
             UserId = userId,
             CategoryId = dto.CategoryId,
             CreatedAt = DateTime.UtcNow,
+            RecurringFrequency = dto.RecurringFrequency,
             UpdatedAt = DateTime.UtcNow
         };
+
+        if (task.RecurringFrequency != RecurringFrequency.None)
+        {
+            task.NextRunDate = task.RecurringFrequency switch
+            {
+                RecurringFrequency.Daily => DateTime.UtcNow.AddDays(1),
+                RecurringFrequency.Weekly => DateTime.UtcNow.AddDays(7),
+                RecurringFrequency.Monthly => DateTime.UtcNow.AddMonths(1),
+                _ => null
+            };
+        }
 
         await _unitOfWork.Repository<TaskItem>().AddAsync(task, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -155,6 +167,25 @@ public class TaskService : ITaskService
         if (dto.Priority.HasValue) task.Priority = dto.Priority.Value;
         if (dto.DueDate.HasValue) task.DueDate = dto.DueDate;
         task.CategoryId = dto.CategoryId;
+        if (dto.RecurringFrequency.HasValue)
+        {
+            task.RecurringFrequency = dto.RecurringFrequency.Value;
+            if (task.RecurringFrequency != RecurringFrequency.None && task.NextRunDate == null)
+            {
+                task.NextRunDate = task.RecurringFrequency switch
+                {
+                    RecurringFrequency.Daily => DateTime.UtcNow.AddDays(1),
+                    RecurringFrequency.Weekly => DateTime.UtcNow.AddDays(7),
+                    RecurringFrequency.Monthly => DateTime.UtcNow.AddMonths(1),
+                    _ => null
+                };
+            }
+            else if (task.RecurringFrequency == RecurringFrequency.None)
+            {
+                task.NextRunDate = null;
+            }
+        }
+
         task.UpdatedAt = DateTime.UtcNow;
 
         repo.Update(task);

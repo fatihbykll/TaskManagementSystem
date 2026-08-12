@@ -1,5 +1,4 @@
 using TaskManagement.Domain.Enums;
-
 namespace TaskManagement.Domain.Entities
 {
     public class TaskItem
@@ -15,7 +14,10 @@ namespace TaskManagement.Domain.Entities
         public Guid? CategoryId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-
+        // Tekrarlayan Görev Alanları
+        public RecurringFrequency RecurringFrequency { get; set; } = RecurringFrequency.None;
+        public DateTime? NextRunDate { get; set; }
+        public Guid? ParentTaskId { get; set; }
         // Navigation Properties
         public User User { get; set; } = null!;
         public Category? Category { get; set; }

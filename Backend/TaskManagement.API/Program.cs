@@ -108,6 +108,8 @@ try
     builder.Services.AddScoped<IAttachmentService, AttachmentService>();
     builder.Services.AddScoped<IEmailService, MockEmailService>();
     builder.Services.AddScoped<IInactiveUserReminderJob, InactiveUserReminderJob>();
+    builder.Services.AddScoped<IRecurringTaskGeneratorJob, RecurringTaskGeneratorJob>();
+
 
     // ─── AutoMapper ───────────────────────────────────────────────────────────
     builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -209,6 +211,12 @@ try
     {
         Authorization = new[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() }
     });
+
+    RecurringJob.AddOrUpdate<IRecurringTaskGeneratorJob>(
+        "recurring-task-generator",
+        job => job.ExecuteAsync(CancellationToken.None),
+        Cron.Daily);
+
 
     RecurringJob.AddOrUpdate<IInactiveUserReminderJob>(
         "inactive-user-reminder",
