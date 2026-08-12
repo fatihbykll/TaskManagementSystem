@@ -1,4 +1,9 @@
 using Asp.Versioning;
+using Hangfire;
+using Hangfire.PostgreSql;
+using TaskManagement.Application.Interfaces;
+using TaskManagement.Infrastructure.Services;
+using TaskManagement.Infrastructure.Jobs;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text;
@@ -101,6 +106,9 @@ try
     builder.Services.AddScoped<IJwtService, JwtService>();
     builder.Services.AddScoped<ICommentService, CommentService>();
     builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+    builder.Services.AddScoped<IEmailService, MockEmailService>();
+    builder.Services.AddScoped<IInactiveUserReminderJob, InactiveUserReminderJob>();
+
     // ─── AutoMapper ───────────────────────────────────────────────────────────
     builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
     // ─── API Versioning ────────────────────────────────────────────────────────
@@ -120,6 +128,22 @@ try
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<ApplicationDbContext>("database", HealthStatus.Unhealthy);
     // ─── Swagger: JWT Bearer desteği ile ─────────────────────────────────────
+    // ─── Redis Distributed Cache ──────────────────────────────────────────────
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration.GetConnectionString("RedisConnection") ?? "localhost:6379";
+        options.InstanceName = "TaskManagement_";
+    });
+
+    // ─── Hangfire Background Jobs ─────────────────────────────────────────────
+    var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
+    builder.Services.AddHangfire(config =>
+        config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+              .UseSimpleAssemblyNameTypeSerializer()
+              .UseRecommendedSerializerSettings()
+              .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
+    builder.Services.AddHangfireServer();
+
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
@@ -180,6 +204,17 @@ try
     // UseAuthentication, UseAuthorization'dan önce gelmek zorunda; middleware sırası kritiktir.
     app.UseAuthentication();
     app.UseAuthorization();
+    // ─── Hangfire Dashboard ve Job Tanımlaması ────────────────────────────────
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() }
+    });
+
+    RecurringJob.AddOrUpdate<IInactiveUserReminderJob>(
+        "inactive-user-reminder",
+        job => job.ExecuteAsync(CancellationToken.None),
+        Cron.Daily);
+
     app.MapControllers();
     app.MapHealthChecks("/health", new HealthCheckOptions
     {

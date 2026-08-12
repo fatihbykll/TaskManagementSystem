@@ -12,6 +12,7 @@ namespace TaskManagement.Domain.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsActive { get; set; } = true;
+    public DateTime? LastLoginAt { get; set; }
         public UserRole Role { get; set; } = UserRole.User;
 
         // Navigation Properties

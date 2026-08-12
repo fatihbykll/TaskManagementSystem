@@ -20,6 +20,11 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -32,6 +37,8 @@ jobs:
       - run: dotnet test Backend/TaskManagement.Tests/TaskManagement.Tests.csproj -c Release
         env:
           ConnectionStrings__PostgresConnection: Host=localhost;Database=TaskManagementTestDb;Username=postgres;Password=postgres
+          ConnectionStrings__RedisConnection: localhost:6379
+
           JwtSettings__SecretKey: ci-test-super-secret-key-for-actions
           JwtSettings__Issuer: TaskManagementAPI
           JwtSettings__Audience: TaskManagementClient
