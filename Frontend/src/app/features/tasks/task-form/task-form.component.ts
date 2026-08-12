@@ -13,7 +13,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TaskService } from '../../../core/services/task.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { ErrorHandlingService } from '../../../core/services/error-handling.service';
-import { TaskItem, TaskPriority, TaskStatus, CreateTaskRequest, UpdateTaskRequest } from '../../../models/task.model';
+import { TaskItem, TaskPriority, TaskStatus, CreateTaskRequest, RecurringFrequency, UpdateTaskRequest } from '../../../models/task.model';
 import { Category } from '../../../models/category.model';
 export interface TaskFormDialogData {
   task?: TaskItem; // Varsa düzenleme modu, yoksa ekleme modu
@@ -64,6 +64,13 @@ export class TaskFormComponent implements OnInit {
   isEditMode = false;
   readonly TaskPriority = TaskPriority;
   readonly minDate = new Date();
+  readonly recurringOptions = [
+    { value: RecurringFrequency.None,    label: 'Tekrarlama Yok' },
+    { value: RecurringFrequency.Daily,   label: 'Her Gün' },
+    { value: RecurringFrequency.Weekly,  label: 'Her Hafta' },
+    { value: RecurringFrequency.Monthly, label: 'Her Ay' }
+  ];
+
   readonly priorityOptions = [
     { value: TaskPriority.Low,      label: 'Düşük' },
     { value: TaskPriority.Medium,   label: 'Orta' },
@@ -75,7 +82,8 @@ export class TaskFormComponent implements OnInit {
     description: ['', [Validators.maxLength(500)]],
     priority:    [TaskPriority.Medium, Validators.required],
     dueDate:     [null as Date | null, futureDateValidator],
-    categoryId:  [null as string | null]
+    categoryId:  [null as string | null],
+    recurringFrequency: [RecurringFrequency.None]
   });
   get title()       { return this.taskForm.get('title'); }
   get description() { return this.taskForm.get('description'); }
@@ -89,7 +97,8 @@ export class TaskFormComponent implements OnInit {
         description: this.data.task.description,
         priority:    this.data.task.priority,
         dueDate:     this.data.task.dueDate ? new Date(this.data.task.dueDate) : null,
-        categoryId:  this.data.task.categoryId
+        categoryId:  this.data.task.categoryId,
+        recurringFrequency:  this.data.task.recurringFrequency ?? RecurringFrequency.None
       });
     }
   }
@@ -108,7 +117,8 @@ export class TaskFormComponent implements OnInit {
         description: v.description ?? '',
         priority:    v.priority!,
         dueDate:     v.dueDate ? (v.dueDate as Date).toISOString() : null,
-        categoryId:  v.categoryId ?? null
+        categoryId:  v.categoryId ?? null,
+        recurringFrequency: v.recurringFrequency!
       };
       this.taskService.update(this.data.task.id, req).subscribe({
         next: res => {
@@ -126,7 +136,8 @@ export class TaskFormComponent implements OnInit {
         description: v.description ?? '',
         priority:    v.priority!,
         dueDate:     v.dueDate ? (v.dueDate as Date).toISOString() : null,
-        categoryId:  v.categoryId ?? null
+        categoryId:  v.categoryId ?? null,
+        recurringFrequency: v.recurringFrequency!
       };
       this.taskService.create(req).subscribe({
         next: res => {

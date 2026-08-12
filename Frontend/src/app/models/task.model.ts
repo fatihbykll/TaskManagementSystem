@@ -4,19 +4,27 @@ export enum TaskStatus {
 export enum TaskPriority {
   Low = 0, Medium = 1, High = 2, Critical = 3
 }
+export enum RecurringFrequency {
+  None = 0, Daily = 1, Weekly = 2, Monthly = 3
+}
 export interface TaskItem {
   id: string; title: string; description: string;
   status: TaskStatus; priority: TaskPriority;
   dueDate: string | null; categoryId: string | null;
   createdAt: string; updatedAt: string | null;
+  recurringFrequency: RecurringFrequency;
+  nextRunDate?: string | null;
+  parentTaskId?: string | null;
 }
 export interface CreateTaskRequest {
   title: string; description: string; priority: TaskPriority;
   dueDate: string | null; categoryId: string | null;
+  recurringFrequency: RecurringFrequency;
 }
 export interface UpdateTaskRequest {
   title: string; description: string; priority: TaskPriority;
   dueDate: string | null; categoryId: string | null;
+  recurringFrequency: RecurringFrequency;
 }
 export interface TaskFilter {
   searchTerm?: string;

@@ -53,6 +53,17 @@
           }
         </mat-form-field>
       </div>
+      <!-- Tekrarlama -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tekrarlama Sıklığı</mat-label>
+        <mat-select formControlName="recurringFrequency">
+          @for (opt of recurringOptions; track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+          }
+        </mat-select>
+        <mat-icon matPrefix>repeat</mat-icon>
+      </mat-form-field>
+
       <!-- Kategori -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Kategori</mat-label>
