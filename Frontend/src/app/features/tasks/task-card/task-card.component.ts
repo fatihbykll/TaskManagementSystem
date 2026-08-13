@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { TaskItem, TaskStatus, TaskPriority } from '../../../models/task.model';
+import { TaskItem, TaskStatus, TaskPriority, RecurringFrequency } from '../../../models/task.model';
 export interface TaskCardAction {
   type: 'edit' | 'delete' | 'status';
   task: TaskItem;
@@ -25,18 +25,18 @@ const STATUS_META: Record<TaskStatus, { label: string; color: string; icon: stri
   [TaskStatus.Completed]:  { label: 'Tamamlandı',   color: '#2e7d32', icon: 'check_circle' },
   [TaskStatus.Cancelled]:  { label: 'İptal',        color: '#b71c1c', icon: 'cancel' }
 };
+const RECURRING_LABELS: Record<RecurringFrequency, string> = {
+  [RecurringFrequency.None]:    '',
+  [RecurringFrequency.Daily]:   'Her Gün',
+  [RecurringFrequency.Weekly]:  'Her Hafta',
+  [RecurringFrequency.Monthly]: 'Her Ay'
+};
 @Component({
   selector: 'app-task-card',
   standalone: true,
   imports: [
-    CommonModule,
-    MatCardModule,
-    MatChipsModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatMenuModule,
-    MatDividerModule
+    CommonModule, MatCardModule, MatChipsModule, MatIconModule,
+    MatButtonModule, MatTooltipModule, MatMenuModule, MatDividerModule
   ],
   templateUrl: './task-card.component.html',
   styleUrl: './task-card.component.scss'
@@ -45,18 +45,27 @@ export class TaskCardComponent {
   @Input({ required: true }) task!: TaskItem;
   @Output() action = new EventEmitter<TaskCardAction>();
   readonly TaskStatus = TaskStatus;
+  readonly RecurringFrequency = RecurringFrequency;
   get priority() { return PRIORITY_META[this.task.priority]; }
   get status()   { return STATUS_META[this.task.status]; }
+  /** Tekrarlama etiketi: None ise null döner */
+  get recurringLabel(): string | null {
+    const f = this.task.recurringFrequency ?? RecurringFrequency.None;
+    return f !== RecurringFrequency.None ? RECURRING_LABELS[f] : null;
+  }
+  /** ParentTaskId doluysa bu görev bir kopyadan oluşmuştur */
+  get isClone(): boolean {
+    return !!this.task.parentTaskId;
+  }
   get dueDateInfo(): { label: string; color: string; icon: string; warning: boolean } | null {
     if (!this.task.dueDate) return null;
     const now = new Date(); now.setHours(0, 0, 0, 0);
     const due = new Date(this.task.dueDate); due.setHours(0, 0, 0, 0);
     const diffDays = Math.ceil((due.getTime() - now.getTime()) / 86400000);
-    const done = this.task.status === TaskStatus.Completed ||
-                 this.task.status === TaskStatus.Cancelled;
-    if (!done && diffDays < 0)  return { label: `${Math.abs(diffDays)} gün gecikmiş`, color: '#c62828', icon: 'warning',    warning: true };
-    if (!done && diffDays === 0) return { label: 'Bugün son gün!',                     color: '#e65100', icon: 'alarm',      warning: true };
-    if (!done && diffDays <= 3)  return { label: `${diffDays} gün kaldı`,              color: '#f57c00', icon: 'alarm_on',   warning: true };
+    const done = this.task.status === TaskStatus.Completed || this.task.status === TaskStatus.Cancelled;
+    if (!done && diffDays < 0)   return { label: `${Math.abs(diffDays)} gün gecikmiş`, color: '#c62828', icon: 'warning',        warning: true };
+    if (!done && diffDays === 0) return { label: 'Bugün son gün!',                     color: '#e65100', icon: 'alarm',          warning: true };
+    if (!done && diffDays <= 3)  return { label: `${diffDays} gün kaldı`,              color: '#f57c00', icon: 'alarm_on',       warning: true };
     return { label: due.toLocaleDateString('tr-TR'), color: '#757575', icon: 'calendar_today', warning: false };
   }
   get progressValue(): number {

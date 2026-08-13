@@ -8,6 +8,18 @@
           [style.background]="priority.bg">
       {{ priority.label }}
     </span>
+    <!-- D1: Tekrarlayan görev badge'i -->
+    @if (recurringLabel) {
+      <span class="recurring-badge" matTooltip="Bu görev otomatik tekrarlanır">
+        🔁 {{ recurringLabel }}
+      </span>
+    }
+    <!-- D2: Tekrarlayan kopya etiketi -->
+    @if (isClone) {
+      <span class="clone-badge" matTooltip="Bu görev otomatik klonlandı">
+        📋 Otomatik Kopya
+      </span>
+    }
     <!-- Üst sağ: aksiyon menüsü -->
     <button mat-icon-button class="action-menu-btn" [matMenuTriggerFor]="actionMenu">
       <mat-icon>more_vert</mat-icon>

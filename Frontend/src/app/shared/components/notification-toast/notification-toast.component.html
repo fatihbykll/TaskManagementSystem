@@ -1,0 +1,9 @@
+<div class="toast-container">
+  @for (notif of notifications$ | async; track notif.id) {
+    <div class="toast toast--{{ notif.type }}" [@slideIn]>
+      <span class="toast__icon">{{ getIcon(notif.type) }}</span>
+      <span class="toast__message">{{ notif.message }}</span>
+      <button class="toast__close" (click)="remove(notif.id)">✕</button>
+    </div>
+  }
+</div>

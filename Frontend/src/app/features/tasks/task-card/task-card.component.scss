@@ -116,3 +116,31 @@ mat-card-content {
 @media (max-width: 480px) {
   :host { font-size: 0.9rem; }
 }
+// D1: Tekrarlayan görev badge
+.recurring-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(33, 150, 243, 0.12);
+  color: #1565c0;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  margin-left: 6px;
+}
+// D2: Otomatik kopya badge
+.clone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(156, 39, 176, 0.10);
+  color: #7b1fa2;
+  border: 1px solid rgba(156, 39, 176, 0.25);
+  margin-left: 6px;
+}

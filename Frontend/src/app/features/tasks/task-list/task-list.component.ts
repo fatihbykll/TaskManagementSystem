@@ -20,7 +20,7 @@ import { TaskCardComponent, TaskCardAction } from '../task-card/task-card.compon
 import { TaskBoardComponent } from '../task-board/task-board.component';
 import { TaskFormComponent, TaskFormDialogData } from '../task-form/task-form.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { TaskItem, TaskStatus, TaskPriority, TaskFilter } from '../../../models/task.model';
+import { TaskItem, TaskStatus, TaskPriority, TaskFilter, RecurringFrequency } from '../../../models/task.model';
 import { PagedResponse } from '../../../models/api-response.model';
 type SortField = 'title' | 'dueDate' | 'priority' | 'createdAt';
 type ViewMode  = 'grid' | 'board';
@@ -53,6 +53,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
   readonly searchControl   = new FormControl('');
   readonly statusControl   = new FormControl<TaskStatus | ''>('');
   readonly priorityControl = new FormControl<TaskPriority | ''>('');
+  readonly recurringOnlyControl = new FormControl<boolean>(false);
+  readonly RecurringFrequency = RecurringFrequency;
   sortBy: SortField       = 'createdAt';
   sortDirection: 'asc' | 'desc' = 'desc';
   currentPage = 0;
