@@ -12,14 +12,13 @@ namespace TaskManagement.API.Controllers;
 public class TasksController : BaseApiController
 {
     private readonly ITaskService _taskService;
-    public TasksController(ITaskService taskService)
+    private readonly IReportService _reportService;
+    public TasksController(ITaskService taskService, IReportService reportService)
     {
         _taskService = taskService;
+        _reportService = reportService;
     }
-    /// <summary>
-    /// Filtrelenmiş ve sayfalı görev listesi.
-    /// Query string: ?searchTerm=...&amp;status=0&amp;priority=2&amp;pageNumber=1&amp;pageSize=10
-    /// </summary>
+    /// <summary>Filtrelenmiş ve sayfalı görev listesi.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<PagedResponse<TaskItemDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] TaskFilterDto filter, CancellationToken ct)
@@ -35,7 +34,15 @@ public class TasksController : BaseApiController
         var result = await _taskService.GetStatisticsAsync(GetCurrentUserId(), ct);
         return Ok(result);
     }
-    /// <summary>Vadesi geçmiş (overdue) görevleri listeler. DueDate geçmiş, tamamlanmamış/iptal edilmemiş.</summary>
+    /// <summary>Kullanıcının verimlilik skorunu ve streak bilgisini döner.</summary>
+    [HttpGet("productivity")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProductivity(CancellationToken ct)
+    {
+        var result = await _reportService.GetUserProductivityAsync(GetCurrentUserId(), ct);
+        return Ok(ApiResponse<object>.SuccessResult(result, "Verimlilik skoru hesaplandı."));
+    }
+    /// <summary>Vadesi geçmiş (overdue) görevleri listeler.</summary>
     [HttpGet("overdue")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<TaskItemDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOverdue(CancellationToken ct)
@@ -43,18 +50,17 @@ public class TasksController : BaseApiController
         var result = await _taskService.GetOverdueTasksAsync(GetCurrentUserId(), ct);
         return Ok(result);
     }
-    /// <summary>Id'ye göre tek görev getirir. Sahiplik kontrolü servis katmanında yapılır.</summary>
+    /// <summary>Id'ye göre tek görev getirir.</summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _taskService.GetTaskByIdAsync(id, GetCurrentUserId(), ct);
-        if (!result.Success)
-            return NotFound(result);
+        if (!result.Success) return NotFound(result);
         return Ok(result);
     }
-    /// <summary>Yeni görev oluşturur. UserId JWT'den alınır; Status her zaman Pending başlar.</summary>
+    /// <summary>Yeni görev oluşturur.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status400BadRequest)]
@@ -64,14 +70,12 @@ public class TasksController : BaseApiController
             return BadRequest(ApiResponse<TaskItemDto>.FailResult(
                 ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
         var result = await _taskService.CreateTaskAsync(GetCurrentUserId(), dto, ct);
-        if (!result.Success)
-            return BadRequest(result);
+        if (!result.Success) return BadRequest(result);
         return StatusCode(StatusCodes.Status201Created, result);
     }
-    /// <summary>Görevi günceller. Durum değişikliği için PATCH /{id}/status kullanılmalıdır.</summary>
+    /// <summary>Görevi günceller.</summary>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTaskDto dto, CancellationToken ct)
     {
@@ -81,8 +85,7 @@ public class TasksController : BaseApiController
         var result = await _taskService.UpdateTaskAsync(id, GetCurrentUserId(), dto, ct);
         if (!result.Success)
             return result.Errors.Any(e => e.Contains("bulunamadı") || e.Contains("yetki"))
-                ? NotFound(result)
-                : BadRequest(result);
+                ? NotFound(result) : BadRequest(result);
         return Ok(result);
     }
     /// <summary>Görevi siler.</summary>
@@ -92,18 +95,14 @@ public class TasksController : BaseApiController
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         var result = await _taskService.DeleteTaskAsync(id, GetCurrentUserId(), ct);
-        if (!result.Success)
-            return NotFound(result);
+        if (!result.Success) return NotFound(result);
         return Ok(result);
     }
-    /// <summary>
-    /// Görev durumunu günceller. CompletedAt audit alanı otomatik set edilir.
-    /// </summary>
+    /// <summary>Görev durumunu günceller.</summary>
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<TaskItemDto>), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UpdateStatus(
-        Guid id, [FromBody] UpdateTaskStatusDto dto, CancellationToken ct)
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTaskStatusDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
             return BadRequest(ApiResponse<TaskItemDto>.FailResult(
@@ -111,8 +110,7 @@ public class TasksController : BaseApiController
         var result = await _taskService.UpdateTaskStatusAsync(id, GetCurrentUserId(), dto.Status, ct);
         if (!result.Success)
             return result.Errors.Any(e => e.Contains("bulunamadı"))
-                ? NotFound(result)
-                : BadRequest(result);
+                ? NotFound(result) : BadRequest(result);
         return Ok(result);
     }
 }

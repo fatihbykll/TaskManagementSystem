@@ -3,7 +3,10 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Infrastructure.Services;
+using TaskManagement.API.Services;
 using TaskManagement.Infrastructure.Jobs;
+using TaskManagement.API.Hubs;
+
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text;
@@ -22,6 +25,7 @@ using TaskManagement.Domain.Interfaces;
 using TaskManagement.Infrastructure.Data;
 using TaskManagement.Infrastructure.Repositories;
 using TaskManagement.Infrastructure.Services;
+using TaskManagement.API.Services;
 using TaskManagement.API.Middleware;
 // ─── Serilog: İki aşamalı başlatma ──────────────────────────────────────────
 // Bootstrap logger: configuration yüklenmeden önce oluşan hataları yakalar.
@@ -106,6 +110,8 @@ try
     builder.Services.AddScoped<IJwtService, JwtService>();
     builder.Services.AddScoped<ICommentService, CommentService>();
     builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+    builder.Services.AddScoped<IReportService, ReportService>();
+
     builder.Services.AddScoped<IEmailService, MockEmailService>();
     builder.Services.AddScoped<IInactiveUserReminderJob, InactiveUserReminderJob>();
     builder.Services.AddScoped<IRecurringTaskGeneratorJob, RecurringTaskGeneratorJob>();
@@ -145,6 +151,10 @@ try
               .UseRecommendedSerializerSettings()
               .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(connectionString)));
     builder.Services.AddHangfireServer();
+
+    // ─── SignalR ──────────────────────────────────────────────────────────────
+    builder.Services.AddSignalR();
+    builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
@@ -224,6 +234,8 @@ try
         Cron.Daily);
 
     app.MapControllers();
+    app.MapHub<NotificationHub>("/hubs/notifications");
+
     app.MapHealthChecks("/health", new HealthCheckOptions
     {
         ResponseWriter = async (context, report) =>

@@ -1,5 +1,4 @@
 using TaskManagement.Domain.Enums;
-
 namespace TaskManagement.Application.DTOs
 {
     public class TaskItemDto
@@ -16,5 +15,8 @@ namespace TaskManagement.Application.DTOs
         public string? CategoryName { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public RecurringFrequency RecurringFrequency { get; set; }
+        public DateTime? NextRunDate { get; set; }
+        public Guid? ParentTaskId { get; set; }
     }
 }
