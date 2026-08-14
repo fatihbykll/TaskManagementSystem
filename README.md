@@ -16,10 +16,16 @@ Görev Yönetim Sistemi; görevleri oluşturma, kategorize etme, yorum yapma, do
 | **Entity Framework Core** | ORM — Code First, Migration |
 | **PostgreSQL** | Ana veritabanı |
 | **Oracle EF Core** | Çoklu veritabanı desteği |
-| **JWT Bearer Auth** | Rol tabanlı kimlik doğrulama (User / Admin) |
+| **JWT Bearer Auth** | Refresh Token rotasyonu,rol tabanlı kimlik doğrulama (User / Admin) |
+| **SignalR** | Gerçek zamanlı WebSocket bildirimleri |
+| **Hangfire** | Tekrarlayan görev ve hatırlatıcı background job'ları |
+| **Redis** | Distributed cache (istatistik, kullanıcı listesi) |
+| **Rate Limiting** | Brute-force koruması — Auth: 10 istek/dk, API: 100 istek/dk |
+| **Response Compression** | Gzip/Brotli HTTP sıkıştırma |
 | **AutoMapper** | DTO ↔ Entity dönüşümleri |
-| **Serilog** | Yapısal loglama (Console + File) |
-| **xUnit + FluentAssertions** | 34 entegrasyon testi |
+| **Serilog** | Yapısal loglama — Correlation ID enricher, Console + File |
+| **xUnit + FluentAssertions** | 42 entegrasyon testi |
+| **Swagger / OpenAPI** | XML dokümantasyonlu interaktif API belgesi |
 
 ### Frontend
 | Teknoloji | Açıklama |
@@ -27,6 +33,8 @@ Görev Yönetim Sistemi; görevleri oluşturma, kategorize etme, yorum yapma, do
 | **Angular 18+** | SPA framework |
 | **Angular Material** | UI bileşen kütüphanesi |
 | **CDK Drag & Drop** | Kanban sürükle-bırak |
+| **Chart.js** | Dashboard Donut + Bar grafikleri |
+| **Microsoft SignalR** | Gerçek zamanlı bildirim istemcisi |
 | **RxJS** | Reaktif programlama |
 | **xlsx + jsPDF** | Excel ve PDF dışa aktarma |
 
@@ -41,18 +49,24 @@ Görev Yönetim Sistemi; görevleri oluşturma, kategorize etme, yorum yapma, do
 
 ## Özellikler
 
-- ✅ **Kullanıcı Yönetimi** — Kayıt, giriş, JWT token yenileme
+- ✅ **Kullanıcı Yönetimi** — Kayıt, giriş, JWT + Refresh Token rotasyonu
+- ✅ **Gelişmiş Auth** — Şifre sıfırlama, Rate Limiting, brute-force koruması
 - ✅ **Rol Tabanlı Yetkilendirme** — User ve Admin rolleri
 - ✅ **Görev CRUD** — Oluşturma, düzenleme, silme, durum güncelleme
+- ✅ **Tekrarlayan Görevler** — Daily/Weekly/Monthly otomatik kopyalama (Hangfire)
+- ✅ **Gerçek Zamanlı Bildirimler** — SignalR WebSocket bildirimleri
+- ✅ **Gelişmiş Raporlama** — Günlük özet raporu, kişisel verimlilik skoru
 - ✅ **Kategori Yönetimi** — Renk kodlu kategori oluşturma ve atama
 - ✅ **Kanban Panosu** — 4 sütunlu sürükle-bırak (CDK)
+- ✅ **Dashboard Grafikleri** — Görev durum dağılımı (Donut) + Bar chart (Chart.js)
 - ✅ **Dosya Yükleme** — Whitelist koruması (pdf/jpg/png/txt), 10 MB limit
 - ✅ **Yorum Sistemi** — Göreve yorum ekleme ve listeleme
-- ✅ **Gelişmiş Filtreleme** — Arama, durum, öncelik, sayfalama
+- ✅ **Gelişmiş Filtreleme** — Arama, durum, öncelik, tekrarlayan filtresi, sayfalama
 - ✅ **Dışa Aktarma** — Excel (.xlsx) ve PDF çıktısı
 - ✅ **Dark Mode** — Sistem temasına uyumlu koyu mod
 - ✅ **Mobil Uyumlu** — 4 breakpoint responsive tasarım
-- ✅ **Admin Paneli** — Sistem istatistikleri ve kullanıcı listesi
+- ✅ **Admin Paneli** — Sistem istatistikleri, kullanıcı listesi ve günlük rapor
+- ✅ **Sistem Metrikleri** — Uptime, DB satır sayıları (monitoring hazır)
 
 ---
 
@@ -63,9 +77,9 @@ TaskManagementSystem/
 ├── Backend/
 │   ├── TaskManagement.Domain/          # Entity, Enum, Interface
 │   ├── TaskManagement.Application/     # DTO, Service, Interface, Mapping
-│   ├── TaskManagement.Infrastructure/  # EF Core, Repository, JWT, Migration
-│   ├── TaskManagement.API/             # Controller, Middleware, Program.cs
-│   └── TaskManagement.Tests/           # xUnit entegrasyon testleri (34 test)
+│   ├── TaskManagement.Infrastructure/  # EF Core, Repository, JWT, Hangfire, Migration
+│   ├── TaskManagement.API/             # Controller, Middleware, Hub, Program.cs
+│   └── TaskManagement.Tests/           # xUnit entegrasyon testleri (42 test)
 ├── Frontend/
 │   └── src/app/
 │       ├── core/                       # Servisler, Guard, Interceptor, Model
@@ -86,6 +100,7 @@ TaskManagementSystem/
 - .NET 10 SDK
 - Node.js 22+
 - PostgreSQL 16
+- Redis (opsiyonel — cache devre dışı bırakılabilir)
 - Docker (opsiyonel)
 
 ### 1. Veritabanı
@@ -154,6 +169,8 @@ chmod +x deploy.sh
 | Frontend | internal | Angular SPA |
 | Backend | internal | .NET API |
 | PostgreSQL | internal | Veritabanı (dışa kapalı) |
+| Redis | internal | Cache (dışa kapalı) |
+
 
 ---
 
@@ -165,9 +182,12 @@ chmod +x deploy.sh
 | **TLS/SSL** | Let's Encrypt, TLS 1.2/1.3, HSTS (1 yıl) |
 | **HTTP Headers** | CSP, X-Frame-Options, X-Content-Type-Options |
 | **Rate Limiting** | Auth: 10 istek/dk, API: 30 istek/dk |
-| **JWT** | HS256 imzalı, rol claim dahil |
+| **JWT + Refresh Token** | HS256 imzalı, 7 günlük token rotasyonu |
+| **Şifre Sıfırlama** | 1 saatlik tek kullanımlık token|
 | **Dosya Yükleme** | Uzantı + MIME çift kontrolü, 10 MB limit |
-| **Ağ İzolasyonu** | PostgreSQL yalnızca internal Docker network'te |
+| **Correlation ID** | Her istek için izlenebilir benzersiz ID |
+| **Ağ İzolasyonu** | PostgreSQL ve Redis yalnızca internal Docker network'te |
+
 
 ---
 
