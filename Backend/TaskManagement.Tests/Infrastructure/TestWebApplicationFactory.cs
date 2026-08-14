@@ -26,7 +26,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             Environment.SetEnvironmentVariable("DatabaseProvider", "Postgres");
         if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AdminEmail")))
             Environment.SetEnvironmentVariable("AdminEmail", "admin@test.com");
-        // Test ortamında Redis bağlantısı yoktur; InMemory ile eziyoruz.
         Environment.SetEnvironmentVariable("ConnectionStrings__RedisConnection", "");
     }
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -34,7 +33,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         builder.ConfigureServices(services =>
         {
-            // Redis (IDistributedCache) kaydını kaldır, InMemory ile değiştir.
+            // Redis → InMemory
             var redisDescriptor = services.FirstOrDefault(
                 d => d.ServiceType == typeof(IDistributedCache));
             if (redisDescriptor != null)

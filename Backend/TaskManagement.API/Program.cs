@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -156,6 +157,31 @@ try
     builder.Services.AddSignalR();
     builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
+    // ─── Rate Limiting (Brute-force koruması — Testing ortamında devre dışı) ──
+    if (!builder.Environment.IsEnvironment("Testing"))
+    builder.Services.AddRateLimiter(options =>
+    {
+        // "auth" policy: Login/Register endpoint'leri için — IP başına 10 istek/dakika
+        options.AddFixedWindowLimiter("auth", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 10;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 0;
+        });
+        // "api" policy: Genel API endpoint'leri için — IP başına 100 istek/dakika
+        options.AddFixedWindowLimiter("api", limiterOptions =>
+        {
+            limiterOptions.PermitLimit = 100;
+            limiterOptions.Window = TimeSpan.FromMinutes(1);
+            limiterOptions.QueueLimit = 5;
+        });
+        options.OnRejected = async (ctx, ct) =>
+        {
+            ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            await ctx.HttpContext.Response.WriteAsJsonAsync(
+                new { success = false, message = "Çok fazla istek gönderildi. Lütfen bekleyin." }, ct);
+        };
+    });
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
@@ -233,6 +259,7 @@ try
         job => job.ExecuteAsync(CancellationToken.None),
         Cron.Daily);
 
+    if (!app.Environment.IsEnvironment("Testing")) app.UseRateLimiter();
     app.MapControllers();
     app.MapHub<NotificationHub>("/hubs/notifications");
 
