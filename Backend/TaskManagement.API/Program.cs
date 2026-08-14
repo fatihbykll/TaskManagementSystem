@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.ResponseCompression;
+using TaskManagement.API.Middleware;
 using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
 using Hangfire;
@@ -182,6 +184,17 @@ try
                 new { success = false, message = "Çok fazla istek gönderildi. Lütfen bekleyin." }, ct);
         };
     });
+    // ─── Response Compression (Gzip/Brotli) ─────────────────────────────────
+    builder.Services.AddResponseCompression(opts =>
+    {
+        opts.EnableForHttps = true;
+        opts.Providers.Add<GzipCompressionProvider>();
+        opts.Providers.Add<BrotliCompressionProvider>();
+        opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+            new[] { "application/json", "text/json" });
+    });
+    builder.Services.Configure<GzipCompressionProviderOptions>(opts =>
+        opts.Level = System.IO.Compression.CompressionLevel.Fastest);
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
@@ -223,6 +236,9 @@ try
         "uploads", "attachments");
     Directory.CreateDirectory(uploadsDir);
     // Serilog request logging: her HTTP isteği otomatik loglanır.
+    // ─── Correlation ID + Compression ────────────────────────────────────────
+    app.UseMiddleware<CorrelationIdMiddleware>();
+    app.UseResponseCompression();
     app.UseSerilogRequestLogging(opts =>
     {
         opts.MessageTemplate =
