@@ -34,6 +34,40 @@
         }
         <span class="toolbar-title">Task Management</span>
         <span class="spacer"></span>
+
+        <!-- 🔔 Bildirim Merkezi -->
+        @if (notifications$ | async; as notifs) {
+          <button mat-icon-button [matMenuTriggerFor]="notifMenu"
+                  [matBadge]="notifs.length > 0 ? notifs.length : null"
+                  matBadgeColor="warn"
+                  matTooltip="Bildirimler">
+            <mat-icon>notifications</mat-icon>
+          </button>
+          <mat-menu #notifMenu="matMenu" class="notif-menu">
+            @if (notifs.length === 0) {
+              <div class="notif-empty">
+                <mat-icon>notifications_none</mat-icon>
+                <span>Yeni bildirim yok</span>
+              </div>
+            } @else {
+              <div class="notif-header">
+                <span>Bildirimler ({{ notifs.length }})</span>
+                <button mat-button color="warn" (click)="notificationService.clearAll()">Temizle</button>
+              </div>
+              @for (n of notifs; track n.id) {
+                <button mat-menu-item (click)="notificationService.removeNotification(n.id)">
+                  <mat-icon [style.color]="n.type === 'success' ? '#4caf50' : n.type === 'warning' ? '#ff9800' : '#2196f3'">
+                    {{ n.type === 'success' ? 'check_circle' : n.type === 'warning' ? 'warning' : 'info' }}
+                  </mat-icon>
+                  <div class="notif-item">
+                    <span class="notif-msg">{{ n.message }}</span>
+                    <small class="notif-time">{{ n.timestamp | date:'HH:mm' }}</small>
+                  </div>
+                </button>
+              }
+            }
+          </mat-menu>
+        }
         <button mat-icon-button (click)="toggleTheme()"
                 [matTooltip]="(isDarkMode$ | async) ? 'Açık Tema' : 'Koyu Tema'">
           <mat-icon>{{ (isDarkMode$ | async) ? 'light_mode' : 'dark_mode' }}</mat-icon>

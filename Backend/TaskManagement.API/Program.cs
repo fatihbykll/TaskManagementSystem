@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.ResponseCompression;
 using TaskManagement.API.Middleware;
 using Microsoft.AspNetCore.RateLimiting;
@@ -209,8 +211,9 @@ try
     // ─── Fluent Validation ───────────────────────────────────────────────────
     builder.Services.AddFluentValidationAutoValidation()
                     .AddFluentValidationClientsideAdapters();
-    builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskDtoValidator>();
+    builder.Services.AddValidatorsFromAssemblyContaining<TaskManagement.Application.Validators.CreateTaskDtoValidator>();
 
+    builder.Services.AddScoped<TaskManagement.Application.Interfaces.IExportService, TaskManagement.Infrastructure.Services.ExportService>();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>

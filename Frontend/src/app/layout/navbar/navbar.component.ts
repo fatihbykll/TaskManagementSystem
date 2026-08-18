@@ -7,11 +7,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Observable, map, shareReplay } from 'rxjs';
+import { NotificationService, AppNotification } from '../../core/services/notification.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -22,7 +24,7 @@ interface NavItem { label: string; icon: string; route: string; }
   imports: [
     CommonModule, AsyncPipe, RouterLink, RouterLinkActive,
     MatSidenavModule, MatToolbarModule, MatButtonModule, MatIconModule,
-    MatListModule, MatMenuModule, MatTooltipModule, MatProgressBarModule,
+    MatListModule, MatMenuModule, MatBadgeModule, MatTooltipModule, MatProgressBarModule,
     MatDividerModule
   ],
   templateUrl: './navbar.component.html',
@@ -32,6 +34,8 @@ export class NavbarComponent {
   @ViewChild('sidenav') sidenav!: MatSidenav;
   private readonly breakpointObserver = inject(BreakpointObserver);
   readonly themeService = inject(ThemeService);
+  readonly notificationService = inject(NotificationService);
+  readonly notifications$ = this.notificationService.notifications$;
   readonly loadingService = inject(LoadingService);
   private readonly authService = inject(AuthService);
   readonly isDarkMode$ = this.themeService.isDarkMode$;

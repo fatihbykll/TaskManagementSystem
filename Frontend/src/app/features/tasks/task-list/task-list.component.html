@@ -71,6 +71,13 @@
           <mat-icon>view_kanban</mat-icon>
         </mat-button-toggle>
       </mat-button-toggle-group>
+      <!-- PDF / Excel İndir -->
+      <button mat-icon-button matTooltip="PDF İndir" color="warn" (click)="exportPdf()">
+        <mat-icon>picture_as_pdf</mat-icon>
+      </button>
+      <button mat-icon-button matTooltip="Excel İndir" style="color:#1e7c35" (click)="exportExcel()">
+        <mat-icon>table_view</mat-icon>
+      </button>
       <!-- Export Butonları -->
       <button mat-stroked-button (click)="exportExcel()" matTooltip="Excel olarak indir"
               style="color:#217346;border-color:#217346;">

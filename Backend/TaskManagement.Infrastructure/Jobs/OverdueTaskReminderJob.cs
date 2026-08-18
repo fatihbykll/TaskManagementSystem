@@ -14,16 +14,13 @@ public class OverdueTaskReminderJob
     }
     public async Task CheckAndSendRemindersAsync()
     {
-        // Vadesi bugün veya yarın dolacak olan ve henüz tamamlanmamış görevleri bul
         var thresholdDate = DateTime.UtcNow.AddDays(1);
-        
         var overdueTasks = await _db.Tasks
-            .Where(t => t.Status != TaskStatus.Completed && t.Status != TaskStatus.Cancelled)
+            .Where(t => t.Status != TaskItemStatus.Completed && t.Status != TaskItemStatus.Cancelled)
             .Where(t => t.DueDate.HasValue && t.DueDate.Value.Date <= thresholdDate.Date)
             .ToListAsync();
         foreach (var task in overdueTasks)
         {
-            // İlgili kullanıcıyı bul
             var user = await _db.Users.FindAsync(task.UserId);
             if (user != null)
             {
