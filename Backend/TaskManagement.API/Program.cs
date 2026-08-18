@@ -195,6 +195,22 @@ try
     });
     builder.Services.Configure<GzipCompressionProviderOptions>(opts =>
         opts.Level = System.IO.Compression.CompressionLevel.Fastest);
+    // ─── API Versioning ──────────────────────────────────────────────────────
+    builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+    }).AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
+    // ─── Fluent Validation ───────────────────────────────────────────────────
+    builder.Services.AddFluentValidationAutoValidation()
+                    .AddFluentValidationClientsideAdapters();
+    builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskDtoValidator>();
+
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
@@ -228,6 +244,11 @@ try
                 Array.Empty<string>()
             }
         });
+        // XML Dokümantasyon — Controller /// summary'leri Swagger'da görünür
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (System.IO.File.Exists(xmlPath))
+            options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
     });
     var app = builder.Build();
     // wwwroot/uploads dizininin varlığını garanti eder.
@@ -238,6 +259,7 @@ try
     // Serilog request logging: her HTTP isteği otomatik loglanır.
     // ─── Correlation ID + Compression ────────────────────────────────────────
     app.UseMiddleware<CorrelationIdMiddleware>();
+    app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseResponseCompression();
     app.UseSerilogRequestLogging(opts =>
     {
