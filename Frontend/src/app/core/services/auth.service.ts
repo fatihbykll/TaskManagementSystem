@@ -50,7 +50,8 @@ export class AuthService {
         email:     payload['email']       ?? '',
         username:  payload['unique_name'] ?? '',
         firstName: payload['given_name']  ?? payload['unique_name'] ?? '',
-        lastName:  payload['family_name'] ?? ''
+        lastName:  payload['family_name'] ?? '',
+        role:      payload['role'] ?? payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ?? 'User'
       };
     } catch {
       return null;
@@ -64,4 +65,5 @@ export class AuthService {
   }
   getCurrentUser(): User | null { return this.currentUserSubject.getValue(); }
   isLoggedIn(): boolean         { return this.tokenService.isLoggedIn(); }
+  isAdmin(): boolean            { return this.getCurrentUser()?.role === 'Admin'; }
 }

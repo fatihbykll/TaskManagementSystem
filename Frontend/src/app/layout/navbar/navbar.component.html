@@ -23,7 +23,14 @@
             <span matListItemTitle>{{ item.label }}</span>
           </a>
         }
-      </mat-nav-list>
+        @if (isAdmin) {
+          <mat-divider></mat-divider>
+          <a mat-list-item routerLink="/admin" routerLinkActive="active-link" (click)="onNavItemClick()">
+            <mat-icon matListItemIcon style="color:#7c4dff">admin_panel_settings</mat-icon>
+            <span matListItemTitle>Admin Paneli</span>
+          </a>
+        }
+  </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content class="sidenav-content">
       <mat-toolbar class="toolbar" color="primary">

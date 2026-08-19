@@ -49,6 +49,7 @@ export class NavbarComponent {
     { label: 'Kategoriler', icon: 'category',  route: '/categories' }
   ];
   get isLoggedIn(): boolean { return this.authService.isLoggedIn(); }
+  get isAdmin(): boolean      { return this.authService.isAdmin(); }
   get currentUser()         { return this.authService.getCurrentUser(); }
   toggleTheme(): void { this.themeService.toggle(); }
   logout(): void      { this.authService.logout(); }

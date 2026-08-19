@@ -4,6 +4,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  role?: string;
 }
 export interface LoginRequest {
   email: string;
@@ -15,6 +16,7 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
+  role?: string;
 }
 export interface AuthResponse {
   accessToken: string;
