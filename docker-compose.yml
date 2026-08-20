@@ -1,18 +1,125 @@
 version: '3.8'
-
+# ════════════════════════════════════════════════════════════════
+# Task Management System — Docker Compose
+# Kullanım: docker compose up -d
+# ════════════════════════════════════════════════════════════════
 services:
+  # ── PostgreSQL ────────────────────────────────────────────────
   db:
-    image: postgres:16
+    image: postgres:16-alpine
+    container_name: taskmanagement-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: TaskManagementDb
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-TaskManagementDb}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
     restart: unless-stopped
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # ── Redis ─────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    container_name: taskmanagement-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # ── Backend API (.NET 10) ─────────────────────────────────────
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: taskmanagement-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__PostgresConnection: >
+        Host=db;Database=${POSTGRES_DB:-TaskManagementDb};
+        Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}
+      ConnectionStrings__RedisConnection: redis:6379
+      JwtSettings__SecretKey: ${JWT_SECRET:?JWT_SECRET is required}
+      JwtSettings__Issuer: ${JWT_ISSUER:-TaskManagementAPI}
+      JwtSettings__Audience: ${JWT_AUDIENCE:-TaskManagementClient}
+      JwtSettings__ExpiryInMinutes: ${JWT_EXPIRY_MINUTES:-60}
+      AdminEmail: ${ADMIN_EMAIL:-admin@example.com}
+      DatabaseProvider: Postgres
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+  # ── Frontend (Angular + Nginx) ────────────────────────────────
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: taskmanagement-frontend
+    networks:
+      - internal
+    restart: unless-stopped
+    depends_on:
+      - backend
+  # ── Nginx Reverse Proxy ───────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: taskmanagement-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Infrastructure/nginx/nginx.conf:/etc/nginx/templates/default.conf.template
+      - ./Infrastructure/nginx/nginx-local.conf:/etc/nginx/conf.d/default.conf
+      - certbot_www:/var/www/certbot
+      - certbot_ssl:/etc/letsencrypt
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - internal
+      - external
+    restart: unless-stopped
+  # ── Certbot (SSL sertifika yenileme) ─────────────────────────
+  certbot:
+    image: certbot/certbot:latest
+    container_name: taskmanagement-certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_ssl:/etc/letsencrypt
+    profiles:
+      - ssl
+    entrypoint: >
+      /bin/sh -c "trap exit TERM;
+      while :; do certbot renew --quiet; sleep 12h & wait; done"
+volumes:
+  postgres_data:
+  redis_data:
+  certbot_www:
+  certbot_ssl:
+networks:
+  internal:
+    driver: bridge
+  external:
+    driver: bridge
