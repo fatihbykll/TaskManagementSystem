@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using TaskManagement.API.Middleware;
 using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Hangfire;
 using Hangfire.PostgreSql;
 using TaskManagement.Application.Interfaces;
@@ -130,6 +131,7 @@ try
         options.DefaultApiVersion = new ApiVersion(1, 0);
         options.AssumeDefaultVersionWhenUnspecified = true;
         options.ReportApiVersions = true;
+        options.ApiVersionReader = new QueryStringApiVersionReader("api-version");
     })
     .AddMvc()
     .AddApiExplorer(options =>
@@ -203,6 +205,7 @@ try
         options.DefaultApiVersion = new ApiVersion(1, 0);
         options.AssumeDefaultVersionWhenUnspecified = true;
         options.ReportApiVersions = true;
+        options.ApiVersionReader = new QueryStringApiVersionReader("api-version");
     }).AddApiExplorer(options =>
     {
         options.GroupNameFormat = "'v'VVV";
@@ -213,6 +216,7 @@ try
                     .AddFluentValidationClientsideAdapters();
     builder.Services.AddValidatorsFromAssemblyContaining<TaskManagement.Application.Validators.CreateTaskDtoValidator>();
 
+    builder.Services.AddScoped<TaskManagement.Infrastructure.Jobs.OverdueTaskReminderJob>();
     builder.Services.AddScoped<TaskManagement.Application.Interfaces.IExportService, TaskManagement.Infrastructure.Services.ExportService>();
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
